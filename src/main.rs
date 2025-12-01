@@ -12,6 +12,20 @@ fn main() {
     register_days(&mut solver_manager);
     register_files(&mut resource_manager);
 
+    let test_data = "R1000
+L68
+L30
+R48
+L5
+R60
+L55
+L1
+L99
+R14
+L82";
+
+    //solver_manager.test(&current_day, test_data);
+
     solver_manager.solve(&current_day, &resource_manager);
 }
 
@@ -21,5 +35,5 @@ pub(crate) fn register_days(manager: &mut SolverManager) {
 }
 
 pub(crate) fn register_files(manager: &mut ResourceManager) {
-    manager.add_file(1, "../res/day_1.txt".to_string());
+    manager.add_file(1, "./res/day_1.txt".to_string());
 }
