@@ -92,10 +92,6 @@ impl Solver for Day01Solver {
                 break;
             }
 
-            if new_dial < 0 {
-                new_dial += 100;
-            }
-
             if new_dial == 0 || new_dial == 100 {
                 counter += 1;
                 println!("zero click");
