@@ -1,7 +1,7 @@
 use std::{fs::ReadDir, path::PathBuf, str::FromStr};
 
 use crate::{
-    days::{d_01::Day01Solver, d_02::Day02Solver},
+    days::{d_01::Day01Solver, d_02::Day02Solver, d_03::Day03Solver},
     resource::ResourceManager,
     solver::SolverManager,
 };
@@ -11,14 +11,17 @@ mod resource;
 mod solver;
 
 fn main() {
-    let current_day = 2;
+    let current_day = 3;
     let mut resource_manager = ResourceManager::default();
     let mut solver_manager = SolverManager::default();
 
     register_days(&mut solver_manager);
     register_files(&mut resource_manager);
 
-    let test_data = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
+    let test_data = "987654321111111
+811111111111119
+234234234234278
+818181911112111";
 
     //solver_manager.test(&current_day, test_data);
     solver_manager.solve(&current_day, &resource_manager);
@@ -27,9 +30,11 @@ fn main() {
 pub(crate) fn register_days(manager: &mut SolverManager) {
     let solver1 = Day01Solver::default();
     let solver2 = Day02Solver::default();
+    let solver3 = Day03Solver::default();
 
     manager.add_solver(1, Box::new(solver1));
-    manager.add_solver(2, Box::new(solver2))
+    manager.add_solver(2, Box::new(solver2));
+    manager.add_solver(3, Box::new(solver3));
 }
 
 pub(crate) fn register_files(manager: &mut ResourceManager) {
