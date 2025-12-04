@@ -1,6 +1,3 @@
-///
-/// Placeholder of a solver to copy
-///
 use crate::solver::Solver;
 
 #[derive(Default)]
