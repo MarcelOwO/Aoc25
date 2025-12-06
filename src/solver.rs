@@ -13,7 +13,6 @@ pub(crate) struct SolverManager {
 
 impl SolverManager {
     pub(crate) fn add_solver(&mut self, key: usize, solver: Box<dyn Solver>) {
-        println!("adding: {key}");
         self.solvers.insert(key, solver);
     }
 
