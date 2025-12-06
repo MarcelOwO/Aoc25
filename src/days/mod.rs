@@ -1,5 +1,6 @@
-pub(crate) mod d_01;
-pub(crate) mod d_02;
-pub(crate) mod d_03;
-pub(crate) mod d_04;
-pub(crate) mod d_05;
+pub(crate) mod d_1;
+pub(crate) mod d_2;
+pub(crate) mod d_3;
+pub(crate) mod d_4;
+pub(crate) mod d_5;
+pub(crate) mod d_6;

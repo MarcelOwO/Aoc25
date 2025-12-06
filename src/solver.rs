@@ -13,6 +13,7 @@ pub(crate) struct SolverManager {
 
 impl SolverManager {
     pub(crate) fn add_solver(&mut self, key: usize, solver: Box<dyn Solver>) {
+        println!("adding: {key}");
         self.solvers.insert(key, solver);
     }
 
@@ -23,7 +24,13 @@ impl SolverManager {
     }
 
     pub(crate) fn solve(&mut self, key: &usize, resource: &ResourceManager) {
-        let solver = self.solvers.get_mut(key).unwrap();
+        let solver = match self.solvers.get_mut(key) {
+            Some(val) => val,
+            None => {
+                println!("no solver with key: {key} found");
+                return;
+            }
+        };
         let res = resource.get_file(*key);
         solver.solve1(&res);
         solver.solve2(&res);

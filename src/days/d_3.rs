@@ -1,11 +1,9 @@
 use crate::solver::Solver;
 
 #[derive(Default)]
-pub(crate) struct Day03Solver {}
+pub(crate) struct Day3Solver {}
 
-impl Day03Solver {}
-
-impl Solver for Day03Solver {
+impl Solver for Day3Solver {
     fn solve1(&mut self, data: &str) {
         let mut sum = 0;
 
@@ -15,7 +13,7 @@ impl Solver for Day03Solver {
             let nums: Vec<u32> = line.chars().map(|x| x.to_digit(10).unwrap()).collect();
             let nums_len = nums.len();
 
-            if (nums_len < 5) {
+            if nums_len < 5 {
                 println!("fix");
                 continue;
             }

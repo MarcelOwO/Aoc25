@@ -1,11 +1,11 @@
 use crate::solver::Solver;
 
 #[derive(Default)]
-pub(crate) struct Day01Solver {}
+pub(crate) struct Day1Solver {}
 
-impl Day01Solver {}
+impl Day1Solver {}
 
-impl Solver for Day01Solver {
+impl Solver for Day1Solver {
     fn solve1(&mut self, data: &str) {
         let mut counter = 0;
         let mut dial = 50;

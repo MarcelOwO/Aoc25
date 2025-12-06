@@ -2,9 +2,9 @@ use crate::solver::Solver;
 use array2d::Array2D;
 
 #[derive(Default)]
-pub(crate) struct Day04Solver {}
+pub(crate) struct Day4Solver {}
 
-impl Day04Solver {}
+impl Day4Solver {}
 
 fn check_surrounding(x: usize, y: usize, length: i32, height: i32, matrix: &Vec<Vec<bool>>) -> i32 {
     let mut counter = 0;
@@ -49,7 +49,7 @@ fn check_surrounding(x: usize, y: usize, length: i32, height: i32, matrix: &Vec<
     counter
 }
 
-impl Solver for Day04Solver {
+impl Solver for Day4Solver {
     fn solve1(&mut self, data: &str) {
         let mut counter = 0;
 

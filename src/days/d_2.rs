@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::solver::Solver;
 
 #[derive(Default)]
-pub(crate) struct Day02Solver {}
+pub(crate) struct Day2Solver {}
 
 pub(crate) fn is_valid_1(num: u64) -> bool {
     let str = num.to_string();
@@ -105,7 +105,7 @@ pub(crate) fn is_valid_2(num: u64) -> bool {
 }
 */
 
-impl Solver for Day02Solver {
+impl Solver for Day2Solver {
     fn solve1(&mut self, data: &str) {
         let mut counter = 0;
         for range in data.split(",") {

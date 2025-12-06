@@ -1,20 +1,21 @@
-use std::collections::HashSet;
-
-///
-/// Placeholder of a solver to copy
-///
 use crate::solver::Solver;
 
 #[derive(Default)]
-pub(crate) struct Day05Solver {}
+pub(crate) struct Day5Solver {}
 
-impl Day05Solver {}
+impl Day5Solver {}
+
+fn find_in_range2(to_find: u64, range: (u64, u64)) -> bool {
+    find_in_range(to_find, range.0, range.1)
+}
 
 fn find_in_range(to_find: u64, first: u64, last: u64) -> bool {
+    if first > last {
+        return false;
+    }
     if last - first < 10 {
         for n in first..last + 1 {
             if n == to_find {
-                println!("found: {n} in range: {first}:{last}");
                 return true;
             }
         }
@@ -34,10 +35,45 @@ fn find_in_range(to_find: u64, first: u64, last: u64) -> bool {
 }
 
 fn count_ranges(first: u64, last: u64) -> u64 {
-    last - first
+    if last < first {
+        return 0;
+    }
+
+    last - first + 1
 }
 
-impl Solver for Day05Solver {
+fn insert_range(ranges: &mut Vec<(u64, u64)>, in_range: (u64, u64)) {
+    let mut out_range = in_range;
+    let mut idx = 0;
+
+    for n in 0..ranges.len() {
+        let current_range = ranges[n];
+
+        if find_in_range2(out_range.0, current_range) {
+            if find_in_range2(out_range.1, current_range) {
+                return;
+            } else {
+                out_range.0 = current_range.1 + 1;
+                idx = n;
+                break;
+            }
+        }
+
+        if find_in_range2(out_range.1, out_range) {
+            out_range.1 = out_range.0 - 1;
+            idx = n + 1;
+            break;
+        }
+    }
+
+    if in_range.0 > in_range.1 {
+        return;
+    }
+
+    ranges.insert(idx, out_range);
+}
+
+impl Solver for Day5Solver {
     fn solve1(&mut self, data: &str) {
         let mut counter = 0;
         let lines: Vec<&str> = data.trim().split("\n").collect();
@@ -88,15 +124,30 @@ impl Solver for Day05Solver {
             }
 
             let nums: Vec<&str> = line.trim().split("-").collect();
+
             let n_0 = nums[0].parse::<u64>().unwrap();
             let n_1 = nums[1].parse::<u64>().unwrap();
 
             let n = (n_0, n_1);
 
-            ranges.push(n);
+            insert_range(&mut ranges, n);
         }
 
         let mut counter = 0;
+
+        ranges.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+
+        for n in 0..ranges.len() {
+            if n + 2 > ranges.len() {
+                break;
+            }
+            if ranges[n].1 > ranges[n + 1].0 {
+                println!("overlap found");
+
+                println!("overlap amount: {}", ranges[n].1 - ranges[n + 1].0);
+            }
+        }
+
         for range in ranges {
             counter += count_ranges(range.0, range.1);
         }
