@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::solver::Solver;
 
@@ -49,35 +49,28 @@ fn process_line(line: &str, beams: HashSet<usize>) -> (i32, HashSet<usize>) {
     (count, out)
 }
 
-fn process_line2(line: &str, beams: &mut Vec<usize>) -> u32 {
+fn process_line2(line: &str, beams: &mut HashMap<usize, i64>) {
     let chars: Vec<char> = line.chars().collect();
 
-    let mut count = 0;
+    let mut new: Vec<(usize, i64)> = vec![];
 
-    let mut new = vec![];
-
-    for n in 0..beams.len() {
-        let beam = beams[n];
-
-        let char = chars[beam];
-
-        if char == '.' {
+    for (k, v) in beams.iter() {
+        if chars[*k] == '.' {
             continue;
         }
-
-        if char == '^' {
-            count += 1;
-            new.push(beam - 1);
-            new.push(beam + 1);
-
-            beams.remove(n);
-            continue;
-        }
+        new.push((*k, *v * -1));
+        new.push((k + 1, *v));
+        new.push((k - 1, *v));
     }
 
-    beams.append(&mut new);
-
-    count
+    for p in new {
+        let current = match beams.get(&p.0) {
+            Some(val) => *val,
+            None => 0,
+        };
+        let new_val = current + p.1;
+        beams.insert(p.0, new_val);
+    }
 }
 
 impl Solver for Day7Solver {
@@ -105,27 +98,38 @@ impl Solver for Day7Solver {
         println!("Count: {}", total_count);
     }
     fn solve2(&mut self, data: &str) {
-        let mut beams = vec![];
+        //let data = get_test_data();
 
         let lines: Vec<&str> = data.trim().split("\n").map(|x| x.trim()).collect();
 
         let line1: Vec<char> = lines[0].chars().collect();
 
+        let mut beams: HashMap<usize, i64> = HashMap::new();
+
         for n in 0..line1.len() {
             if line1[n] == 'S' {
-                beams.push(n);
+                let current = match beams.get(&n) {
+                    Some(val) => *val,
+                    None => 0,
+                };
+
+                beams.insert(n, current + 1);
+
                 break;
             }
         }
+
         let mut total_count: u64 = 0;
 
         for n in 1..lines.len() {
-            let count = process_line2(lines[n], &mut beams);
+            process_line2(lines[n], &mut beams);
+            beams.iter().for_each(|x| {
+                print!("{}:{} |", x.0, x.1);
+            });
 
-            total_count += count as u64;
-
-            println!("Progress: {}%", n as f32 / lines.len() as f32 * 100.0);
+            print!("\n")
         }
+        beams.values().for_each(|x| total_count += *x as u64);
 
         println!("otherCount: {}", beams.len());
         println!("Count: {}", total_count);
