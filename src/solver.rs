@@ -16,12 +16,6 @@ impl SolverManager {
         self.solvers.insert(key, solver);
     }
 
-    pub(crate) fn test(&mut self, key: &usize, test_data: &str) {
-        let solver = self.solvers.get_mut(key).unwrap();
-        solver.solve1(test_data);
-        solver.solve2(test_data);
-    }
-
     pub(crate) fn solve(&mut self, key: &usize, resource: &ResourceManager) {
         let solver = match self.solvers.get_mut(key) {
             Some(val) => val,

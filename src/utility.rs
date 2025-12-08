@@ -91,10 +91,10 @@ macro_rules! register_days {
 
         use paste::paste;
 
-            $(
-                paste!{
-                    $manager.add_solver($day,Box::new(days::[<d_ $day>]::[<Day $day Solver>]::default()));
-                }
-            )*
+        $(
+            paste!{
+                $manager.add_solver($day,Box::new(days::[<d_ $day>]::[<Day $day Solver>]::default()));
+            }
+        )*
     };
 }
