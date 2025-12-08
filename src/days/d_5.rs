@@ -35,42 +35,23 @@ fn find_in_range(to_find: u64, first: u64, last: u64) -> bool {
 }
 
 fn count_ranges(first: u64, last: u64) -> u64 {
-    if last < first {
-        return 0;
-    }
-
     last - first + 1
 }
 
 fn insert_range(ranges: &mut Vec<(u64, u64)>, in_range: (u64, u64)) {
-    let mut out_range = in_range;
-    let mut idx = 0;
+    ranges.push(in_range);
+    ranges.sort_unstable();
 
-    for n in 0..ranges.len() {
-        let current_range = ranges[n];
+    let mut i = 0;
+    while i + 1 < ranges.len() {
+        if ranges[i].1 >= ranges[i + 1].0 {
+            ranges[i].1 = ranges[i].1.max(ranges[i + 1].1);
 
-        if find_in_range2(out_range.0, current_range) {
-            if find_in_range2(out_range.1, current_range) {
-                return;
-            } else {
-                out_range.0 = current_range.1 + 1;
-                idx = n;
-                break;
-            }
-        }
-
-        if find_in_range2(out_range.1, out_range) {
-            out_range.1 = out_range.0 - 1;
-            idx = n + 1;
-            break;
+            ranges.remove(i + 1);
+        } else {
+            i += 1;
         }
     }
-
-    if in_range.0 > in_range.1 {
-        return;
-    }
-
-    ranges.insert(idx, out_range);
 }
 
 impl Solver for Day5Solver {
@@ -106,7 +87,7 @@ impl Solver for Day5Solver {
                     .collect();
 
                 for range in sub_ranges {
-                    if find_in_range(id, range.0, range.1) {
+                    if find_in_range2(id, *range) {
                         counter += 1;
                         break;
                     }
@@ -134,19 +115,6 @@ impl Solver for Day5Solver {
         }
 
         let mut counter = 0;
-
-        ranges.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
-
-        for n in 0..ranges.len() {
-            if n + 2 > ranges.len() {
-                break;
-            }
-            if ranges[n].1 > ranges[n + 1].0 {
-                println!("overlap found");
-
-                println!("overlap amount: {}", ranges[n].1 - ranges[n + 1].0);
-            }
-        }
 
         for range in ranges {
             counter += count_ranges(range.0, range.1);
