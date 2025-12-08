@@ -1,6 +1,8 @@
 use std::{path::PathBuf, str::FromStr};
 
 use crate::{days, resource::ResourceManager, solver::SolverManager};
+use paste::paste;
+use seq_macro::seq;
 
 pub(crate) fn register_files(manager: &mut ResourceManager) {
     let res_path = "./res";
@@ -84,17 +86,12 @@ pub(crate) fn register_files(manager: &mut ResourceManager) {
 
     manager.add_file(1, "./res/day_1.txt".to_string());
 }
-
-#[macro_export]
-macro_rules! register_days {
-    ($manager:ident,$($day:literal),*) => {
-
-        use paste::paste;
-
-        $(
+pub(crate) fn register_days(solver: &mut SolverManager) {
+    seq!(N in 1..= 12 {
             paste!{
-                $manager.add_solver($day,Box::new(days::[<d_ $day>]::[<Day $day Solver>]::default()));
+                solver.add_solver(N,
+                    Box::new(days::[<d_ N>]::[<Day N Solver>]::default())
+                );
             }
-        )*
-    };
+    });
 }
