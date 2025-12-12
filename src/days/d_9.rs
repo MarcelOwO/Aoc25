@@ -1,4 +1,6 @@
-use std::collections::{HashSet, VecDeque};
+use std::cmp::{max, min};
+use std::collections::{HashMap, HashSet, VecDeque};
+use std::io::pipe;
 
 use crate::solver::Solver;
 
@@ -23,8 +25,13 @@ fn get_area(a: (u32, u32), b: (u32, u32)) -> u64 {
     x * y
 }
 
-fn get_area2(a: (u32, u32), b: (u32, u32), invalid_points: &HashSet<(u32, u32)>) -> u64 {
-    if validate(a, b, invalid_points) {
+fn get_area2(
+    a: (u32, u32),
+    b: (u32, u32),
+    range_x: &HashMap<u32, (u32, u32)>,
+    range_y: &HashMap<u32, (u32, u32)>,
+) -> u64 {
+    if !validate(a, b, range_x, range_y) {
         return 0;
     }
 
@@ -34,27 +41,62 @@ fn get_area2(a: (u32, u32), b: (u32, u32), invalid_points: &HashSet<(u32, u32)>)
     x * y
 }
 
-fn validate(a: (u32, u32), b: (u32, u32), invalid: &HashSet<(u32, u32)>) -> bool {
-    let mut dx = b.0 as i64 - a.0 as i64;
-    let mut dy = b.1 as i64 - a.1 as i64;
+fn get_border(a: (u32, u32), b: (u32, u32)) -> HashSet<(u32, u32)> {
+    let mut points = HashSet::new();
 
-    let sign_x = dx.signum();
-    let abs_dx = dx.abs();
+    let x_min = min(a.0, b.0);
+    let y_min = min(a.1, b.1);
+    let x_max = max(a.0, b.0);
+    let y_max = max(a.1, b.1);
 
-    let sign_y = dy.signum();
-    let abs_dy = dy.abs();
+    for x in x_min..=x_max {
+        points.insert((x, y_min));
+    }
 
-    for i in 0..=abs_dx {
-        for j in 0..=abs_dy {
-            let new_x = (a.0 as i64 + i * sign_x) as u32;
-            let new_y = (a.1 as i64 + j * sign_y) as u32;
+    for x in x_min..=x_max {
+        points.insert((x, y_max));
+    }
 
-            if invalid.contains(&(new_x, new_y)) {
-                return true;
-            }
+    for y in y_min..=y_max {
+        points.insert((x_min, y));
+    }
+
+    for y in y_min..=y_max {
+        points.insert((x_max, y));
+    }
+
+    points
+}
+
+fn validate(
+    a: (u32, u32),
+    b: (u32, u32),
+    range_x: &HashMap<u32, (u32, u32)>,
+    range_y: &HashMap<u32, (u32, u32)>,
+) -> bool {
+    let rect_points = get_border(a, b);
+
+    for (px, py) in rect_points {
+        let &x_range = match range_x.get(&py) {
+            Some(val) => val,
+            None => continue,
+        };
+
+        if px < x_range.0 || px > x_range.1 {
+            return false;
+        }
+
+        let &y_range = match range_y.get(&px) {
+            Some(val) => val,
+            None => continue,
+        };
+
+        if py < y_range.0 || py > y_range.1 {
+            return false;
         }
     }
-    false
+
+    true
 }
 
 fn add_border(points: &mut HashSet<(u32, u32)>, a: (u32, u32), b: (u32, u32)) {
@@ -82,54 +124,9 @@ fn add_border(points: &mut HashSet<(u32, u32)>, a: (u32, u32), b: (u32, u32)) {
     }
 }
 
-fn flood_fill(
-    outer: &mut HashSet<(u32, u32)>,
-    start: (u32, u32),
-    border: &HashSet<(u32, u32)>,
-    min_x: u32,
-    max_x: u32,
-    min_y: u32,
-    max_y: u32,
-) {
-    if border.contains(&start) {
-        panic!("already part of the border");
-    }
-
-    let mut queue: VecDeque<(u32, u32)> = VecDeque::new();
-
-    queue.push_back(start);
-    outer.insert(start);
-
-    while let Some((x, y)) = queue.pop_front() {
-        let moves: [(i64, i64); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
-
-        for (dx, dy) in moves {
-            let nx = x as i64 + dx;
-            let ny = y as i64 + dy;
-
-            if nx < min_x as i64 || nx > max_x as i64 || ny < min_y as i64 || ny > max_y as i64 {
-                continue;
-            }
-
-            let x = nx as u32;
-            let y = ny as u32;
-            let n = (x, y);
-
-            if border.contains(&n) {
-                continue;
-            }
-
-            if outer.insert(n) {
-                queue.push_back(n);
-            }
-        }
-    }
-}
-
 impl Solver for Day9Solver {
-    ///Just a simple brute force solution,
-    ///it is fast enough lol
     fn solve1(&mut self, data: &str) {
+        let data = get_test_data();
         let points: Vec<(u32, u32)> = data
             .trim()
             .lines()
@@ -155,7 +152,8 @@ impl Solver for Day9Solver {
         println!("-----------------------");
     }
     fn solve2(&mut self, data: &str) {
-        println!("getting points");
+        //let data = get_test_data();
+
         let points: Vec<(u32, u32)> = data
             .trim()
             .lines()
@@ -172,8 +170,6 @@ impl Solver for Day9Solver {
         let mut max_x = 0;
         let mut max_y = 0;
 
-        println!("getting max");
-
         for &(x, y) in points.iter() {
             let xu = x;
             let yu = y;
@@ -186,9 +182,10 @@ impl Solver for Day9Solver {
             }
         }
 
+        println!("getting border");
+
         let mut border: HashSet<(u32, u32)> = HashSet::new();
         let len = points.len();
-        println!("getting border");
 
         points.iter().for_each(|&p| {
             border.insert(p);
@@ -206,51 +203,72 @@ impl Solver for Day9Solver {
 
             add_border(&mut border, a, b);
         }
-        println!("border: {}", border.len());
-
-        println!("flood");
-
-        let max_x_safe = max_x + 1;
-        let max_y_safe = max_y + 1;
-        let min_x_safe = 0;
-        let min_y_safe = 0;
-
-        let start: (u32, u32) = (min_x_safe, min_y_safe);
-
-        let mut outer = HashSet::new();
-
-        flood_fill(
-            &mut outer, start, &border, min_x_safe, max_x_safe, min_y_safe, max_y_safe,
-        );
-
-        let max_points: u128 = max_x_safe as u128 * max_y_safe as u128;
-
-        println!(
-            "total: {} outside: {}, border: {}",
-            max_points,
-            outer.len(),
-            border.len()
-        );
-
-        println!("checking");
 
         let mut max = 0;
+        let total_points = len * len - 1;
 
-        for i in 0..len {
-            let a_point = points[i];
+        println!("building lookup");
 
-            for j in 0..len {
-                let b_point = points[j];
+        let mut range_x: HashMap<u32, (u32, u32)> = HashMap::new();
+        let mut range_y: HashMap<u32, (u32, u32)> = HashMap::new();
 
-                //println!("Progress: {}% of {}", (i * j) / (len * len) * 100, len);
+        for &(x, y) in border.iter() {
+            let xr = match range_x.get_mut(&y) {
+                Some(val) => val,
+                None => {
+                    range_x.insert(y, (100000, 0));
+                    range_x.get_mut(&y).unwrap()
+                }
+            };
 
-                let area = get_area2(a_point, b_point, &outer);
+            if x < xr.0 {
+                xr.0 = x;
+            }
+            if x > xr.1 {
+                xr.1 = x
+            }
+
+            let yr = match range_y.get_mut(&x) {
+                Some(val) => val,
+                None => {
+                    range_y.insert(x, (100000, 0));
+                    range_y.get_mut(&x).unwrap()
+                }
+            };
+
+            if y < yr.0 {
+                yr.0 = y;
+            }
+            if y > yr.1 {
+                yr.1 = y
+            }
+        }
+
+        println!("Checking");
+
+        let mut counter = 0.0;
+        let total = total_points as f64;
+
+        for &a_point in points.iter() {
+            for &b_point in points.iter() {
+                let area = get_area2(a_point, b_point, &range_x, &range_y);
+
+                println!(
+                    "current max: {} with progress: {}%  of {}/{}",
+                    max,
+                    (counter / total),
+                    counter,
+                    total_points
+                );
+
+                counter += 1.0;
 
                 if area > max {
                     max = area;
                 }
             }
         }
+
         println!("Max: {max}");
         println!("-----------------------");
     }

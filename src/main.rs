@@ -5,7 +5,7 @@ mod utility;
 
 #[allow(dead_code)]
 fn main() {
-    let current_day = 8;
+    let current_day = 9;
 
     let mut resource_manager = resource::ResourceManager::default();
 
