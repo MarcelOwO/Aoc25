@@ -2,6 +2,8 @@ use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::io::pipe;
 
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 use crate::solver::Solver;
 
 #[derive(Default)]
@@ -246,30 +248,15 @@ impl Solver for Day9Solver {
 
         println!("Checking");
 
-        let mut counter = 0.0;
-        let total = total_points as f64;
-
-        for &a_point in points.iter() {
-            for &b_point in points.iter() {
-                let area = get_area2(a_point, b_point, &range_x, &range_y);
-
-                println!(
-                    "current max: {} with progress: {}%  of {}/{}",
-                    max,
-                    (counter / total),
-                    counter,
-                    total_points
-                );
-
-                counter += 1.0;
-
-                if area > max {
-                    max = area;
-                }
-            }
-        }
-
+        let max = points
+            .par_iter()
+            .map(|&a_point| {
+                points
+                    .iter()
+                    .map(|&b_point| get_area2(a_point, b_point, &range_x, &range_y))
+                    .fold(0, u64::max)
+            })
+            .reduce(|| 0, u64::max);
         println!("Max: {max}");
-        println!("-----------------------");
     }
 }
