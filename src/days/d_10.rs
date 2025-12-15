@@ -1,5 +1,7 @@
 use std::collections::{HashSet, VecDeque};
 
+use good_lp::variables;
+
 ///
 /// Placeholder of a solver to copy
 ///
@@ -215,11 +217,13 @@ impl Solver for Day10Solver {
             .map(|x| map_to_machine2(x.trim()))
             .collect();
 
+        for line in lines {
+            variables! { vars:
+            }
+        }
+
         let mut counter = 0;
 
-        for (joltage, buttons) in lines {
-            counter += solve_machine2(joltage, buttons);
-        }
         println!("Counter: {counter}");
         println!("-----------------------");
     }
