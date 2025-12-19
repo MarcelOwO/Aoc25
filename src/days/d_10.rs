@@ -1,12 +1,9 @@
 use std::collections::{HashSet, VecDeque};
 
 use good_lp::variables;
+use z3::{ast::Int, Config, Context, Optimize, SatResult, Solver};
 
-///
-/// Placeholder of a solver to copy
-///
-use crate::solver::Solver;
-
+use crate::solver;
 #[derive(Default)]
 pub(crate) struct Day10Solver {}
 
@@ -192,9 +189,9 @@ fn map_to_machine2(data: &str) -> (Vec<u32>, Vec<Vec<usize>>) {
     (joltage, buttons)
 }
 
-impl Solver for Day10Solver {
+impl solver::Solver for Day10Solver {
     fn solve1(&mut self, data: &str) {
-        //let data = get_test_data();
+        let data = get_test_data();
 
         let lines: Vec<(u32, Vec<u32>)> = data
             .trim()
@@ -210,19 +207,57 @@ impl Solver for Day10Solver {
         println!("Counter: {counter}");
         println!("-----------------------");
     }
+
     fn solve2(&mut self, data: &str) {
+        let cfg = Config::new();
+
         let lines: Vec<(Vec<u32>, Vec<Vec<usize>>)> = data
             .trim()
             .lines()
             .map(|x| map_to_machine2(x.trim()))
             .collect();
 
-        for line in lines {
-            variables! { vars:
+        let mut counter = 0;
+
+        for (joltage, buttons) in lines {
+            let opt = Optimize::new();
+
+            let button_vars: Vec<Int> = (0..buttons.len())
+                .map(|i| Int::new_const(format!("b{}", i)))
+                .collect();
+
+            for b in &button_vars {
+                opt.assert(&b.ge(&Int::from_i64(0)));
+            }
+
+            for (counter_idx, &target) in joltage.iter().enumerate() {
+                let ib: Vec<&Int> = buttons
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, indicies)| indicies.contains(&counter_idx))
+                    .map(|(i, _)| &button_vars[i])
+                    .collect();
+                if ib.is_empty() {
+                    if target > 0 {
+                        panic!("");
+                    }
+                } else {
+                    let sum = Int::add(&ib.iter().map(|&b| b).collect::<Vec<_>>());
+                    opt.assert(&sum._eq(&Int::from_i64(target as i64)));
+                }
+            }
+
+            let total = Int::add(&button_vars.iter().collect::<Vec<_>>());
+            opt.minimize(&total);
+
+            if opt.check(&[]) == SatResult::Sat {
+                let model = opt.get_model().unwrap();
+                let min_val = model.eval(&total, true).unwrap().as_i64().unwrap();
+                counter += min_val;
+            } else {
+                eprintln!("Warning");
             }
         }
-
-        let mut counter = 0;
 
         println!("Counter: {counter}");
         println!("-----------------------");
